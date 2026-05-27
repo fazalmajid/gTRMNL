@@ -1,0 +1,27 @@
+services:
+  gtrmnl:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    # Required — create a .env file or export these in your shell:
+    #   TRMNL_URL=https://your-page.example.com
+    #   TRMNL_BASE_URL=http://192.168.x.y:8080
+    # Optional:
+    #   TRMNL_TOKEN=yourtoken
+    #   TRMNL_REFRESH=1800
+    command:
+      - -url=${TRMNL_URL:?set TRMNL_URL to the page to render}
+      - -base-url=${TRMNL_BASE_URL:?set TRMNL_BASE_URL to the server LAN address}
+      - -addr=:8080
+      - -refresh=${TRMNL_REFRESH:-1800}
+      - -token=${TRMNL_TOKEN:-}
+    # Chrome uses /tmp for its profile and crash dumps
+    read_only: true
+    tmpfs:
+      - /tmp
+    shm_size: 128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
