@@ -25,8 +25,9 @@ FROM gcr.io/distroless/base-debian12
 COPY --from=chromium /lib/x86_64-linux-gnu     /lib/x86_64-linux-gnu
 COPY --from=chromium /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
 
-# Chromium binary and resources
-COPY --from=chromium /usr/bin/chromium /usr/bin/chromium
+# Chromium resources and binary.
+# The binary lives at /usr/lib/chromium/chromium; /usr/bin/chromium in Debian
+# is a shell wrapper that distroless cannot execute, so we use ExecPath instead.
 COPY --from=chromium /usr/lib/chromium /usr/lib/chromium
 
 # Fonts + pre-built fontconfig cache
@@ -38,5 +39,5 @@ COPY --from=chromium /var/cache/fontconfig /var/cache/fontconfig
 COPY --from=builder /build/gtrmnl /gtrmnl
 
 USER nonroot:nonroot
-EXPOSE 8080
+ENV HOME=/tmp
 ENTRYPOINT ["/gtrmnl"]

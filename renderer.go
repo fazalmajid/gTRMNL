@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chromedp/cdproto/emulation"
 	"github.com/chromedp/chromedp"
 )
 
@@ -34,7 +35,7 @@ func getOrRenderImage(cfg Config) (pngBytes []byte, name string, err error) {
 	cachedBytes = pngBytes
 	cachedName = name
 	cachedAt = time.Now()
-	return pngBytes, name, nil
+	return
 }
 
 func renderImage(cfg Config) (pngBytes []byte, name string, err error) {
@@ -45,6 +46,9 @@ func renderImage(cfg Config) (pngBytes []byte, name string, err error) {
 		chromedp.Flag("hide-scrollbars", true),
 		chromedp.Flag("disable-dev-shm-usage", true),
 	)
+	if cfg.ChromePath != "" {
+		opts = append(opts, chromedp.ExecPath(cfg.ChromePath))
+	}
 
 	allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancelAlloc()
@@ -55,9 +59,18 @@ func renderImage(cfg Config) (pngBytes []byte, name string, err error) {
 	ctx, cancelTimeout := context.WithTimeout(ctx, 30*time.Second)
 	defer cancelTimeout()
 
+	forceLight := chromedp.ActionFunc(func(ctx context.Context) error {
+		return emulation.SetEmulatedMedia().
+			WithMedia("screen").
+			WithFeatures([]*emulation.MediaFeature{
+				{Name: "prefers-color-scheme", Value: "light"},
+			}).Do(ctx)
+	})
+
 	var rawPNG []byte
 	if err = chromedp.Run(ctx,
 		chromedp.EmulateViewport(800, 480),
+		forceLight,
 		chromedp.Navigate(cfg.RenderURL),
 		chromedp.WaitReady("body"),
 		chromedp.CaptureScreenshot(&rawPNG),
@@ -74,7 +87,7 @@ func renderImage(cfg Config) (pngBytes []byte, name string, err error) {
 
 	var buf bytes.Buffer
 	if err = png.Encode(&buf, dithered); err != nil {
-		return nil, "", fmt.Errorf("encode dithered image: %w", err)
+		return nil, "", fmt.Errorf("encode PNG: %w", err)
 	}
 
 	hash := md5.Sum(rawPNG)

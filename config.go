@@ -11,6 +11,7 @@ type Config struct {
 	RefreshRate int
 	ListenAddr  string
 	BaseURL     string
+	ChromePath  string
 }
 
 func parseConfig() Config {
@@ -20,6 +21,7 @@ func parseConfig() Config {
 	flag.IntVar(&cfg.RefreshRate, "refresh", 1800, "Cache TTL and refresh_rate in seconds")
 	flag.StringVar(&cfg.ListenAddr, "addr", ":8080", "HTTP listen address")
 	flag.StringVar(&cfg.BaseURL, "base-url", "http://localhost:8080", "Base URL for image links (include port if non-standard)")
+	flag.StringVar(&cfg.ChromePath, "chrome", "", "Path to Chrome/Chromium executable (default: auto-detect)")
 	flag.Parse()
 
 	if cfg.RenderURL == "" {

@@ -36,6 +36,7 @@ func main() {
 	cfg := parseConfig()
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /preview", previewHandler(cfg))
 	mux.HandleFunc("GET /api/setup", setupHandler(cfg))
 	mux.HandleFunc("GET /api/setup/", setupHandler(cfg))
 	mux.HandleFunc("GET /api/display", displayHandler(cfg))

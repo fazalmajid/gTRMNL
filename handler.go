@@ -82,7 +82,7 @@ func displayHandler(cfg Config) http.HandlerFunc {
 			}
 		}
 
-		pngBytes, name, err := getOrRenderImage(cfg)
+		_, name, err := getOrRenderImage(cfg)
 		if err != nil {
 			logErr.Printf("render error: %v", err)
 			http.Error(w, "render failed: "+err.Error(), http.StatusInternalServerError)
@@ -98,7 +98,6 @@ func displayHandler(cfg Config) http.HandlerFunc {
 			RefreshRate:    cfg.RefreshRate,
 			ResetFirmware:  false,
 		}
-		_ = pngBytes
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
@@ -122,6 +121,19 @@ func logHandler() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, `{"status":200}`)
+	}
+}
+
+func previewHandler(cfg Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data, name, err := getOrRenderImage(cfg)
+		if err != nil {
+			logErr.Printf("preview render error: %v", err)
+			http.Error(w, "render failed: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		http.ServeContent(w, r, name, cachedAt, bytes.NewReader(data))
 	}
 }
 

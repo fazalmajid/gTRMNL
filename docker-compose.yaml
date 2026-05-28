@@ -3,19 +3,22 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${TRMNL_HOST:-}${TRMNL_PORT:-8080}:${TRMNL_PORT:-8080}"
     # Required — create a .env file or export these in your shell:
     #   TRMNL_URL=https://your-page.example.com
     #   TRMNL_BASE_URL=http://192.168.x.y:8080
     # Optional:
+    #   TRMNL_HOST=192.168.1.10   (bind to a specific interface; omit to bind all)
+    #   TRMNL_PORT=8080
     #   TRMNL_TOKEN=yourtoken
     #   TRMNL_REFRESH=1800
     command:
       - -url=${TRMNL_URL:?set TRMNL_URL to the page to render}
       - -base-url=${TRMNL_BASE_URL:?set TRMNL_BASE_URL to the server LAN address}
-      - -addr=:8080
+      - -addr=${TRMNL_HOST:-}:${TRMNL_PORT:-8080}
       - -refresh=${TRMNL_REFRESH:-1800}
       - -token=${TRMNL_TOKEN:-}
+      - -chrome=${TRMNL_CHROME:-/usr/lib/chromium/chromium}
     # Chrome uses /tmp for its profile and crash dumps
     read_only: true
     tmpfs:
